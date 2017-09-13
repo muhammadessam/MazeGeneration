@@ -37,8 +37,8 @@ int get_index(int i, int j) {
 }
 
 void init_grid(cell grid[ROWS * COLS]) {
-    for (int i = 0; i < ROWS; ++i) {
-        for (int j = 0; j < COLS; ++j) {
+    for (int i = 0; i < ROWS; i++) {
+        for (int j = 0; j < COLS; j++) {
             cell temp = {i, j, {true, true, true, true}, false};
             grid[get_index(i, j)] = temp;
         }
@@ -53,32 +53,39 @@ void draw_cell(cell *cell) {
     GLine lineright = newGLine(x + CELLWIDTH, y, x + CELLWIDTH, y + CELLWIDTH);
     GLine linedown = newGLine(x + CELLWIDTH, y + CELLWIDTH, x, y + CELLWIDTH);
     GLine lineleft = newGLine(x, y + CELLWIDTH, x, y);
+
     if (cell->walls[0]) {
+        setColor(linetop, "BLACK");
         add(panel, linetop);
     } else {
-        removeGWindow(panel, linetop);
+        setColor(linetop, "WHITE");
+        add(panel, linetop);
     }
     if (cell->walls[1]) {
+        setColor(lineright, "BLACK");
         add(panel, lineright);
     } else {
-        removeGWindow(panel, lineright);
+        setColor(lineright, "WHITE");
+        add(panel, lineright);
     }
     if (cell->walls[2]) {
+        setColor(linedown, "BLACK");
         add(panel, linedown);
     } else {
-        removeGWindow(panel, linedown);
+        setColor(linedown, "WHITE");
+        add(panel, linedown);
     }
     if (cell->walls[3]) {
+        setColor(lineleft, "BLACK");
         add(panel, lineleft);
     } else {
-        removeGWindow(panel, lineleft);
+        setColor(lineleft, "WHITE");
+        add(panel, lineleft);
     }
-    if(cell->visited){
-        setColor(linetop, "RED");
-        setColor(lineright, "RED");
-        setColor(linedown, "RED");
-        setColor(lineleft, "RED");
-    }
+    /*if (cell->visited) {
+        fillRect(panel, x, y, CELLWIDTH, CELLWIDTH);
+    }*/
+
 }
 
 void draw_current_cell(cell *current) {
@@ -125,24 +132,48 @@ int get_a_neighbor(cell *cell) {
 
 }
 
+void remove_walls(cell* current, cell* next){
+    int x = current->i - next->i;
+    if(x==1){
+        current->walls[0] = false;
+        next->walls[2] = false;
+    } else if(x==-1){
+        current->walls[2]= false;
+        next->walls[0] = false;
+    }
+    int y = current->j - next->j;
+    if(y==1){
+        current->walls[3] = false;
+        next->walls[1]= false;
+
+    } else if(y==-1){
+        current->walls[1] = false;
+        next->walls[3] = false;
+    }
+}
 int main() {
     srand(23);
     panel = newGWindow(WIDTH, HEIGHT);
     init_grid(grid);
     for (int i = 0; i < COLS * ROWS; ++i) {
         draw_cell(&grid[i]);
+        //pause(1);
     }
     draw_current_cell(&grid[0]);
     grid[0].visited = true;
     current = &grid[0];
     while (1) {
         int c;
-        draw_cell(current);
         if ((c = get_a_neighbor(current)) != -1) {
+            // STEP 1 mark as viited
             grid[c].visited = true;
+
+            //STEP 3 remove walls
+            remove_walls(current, &grid[c]);
+            // sTEP 4
             current = &grid[c];
         }
-        draw_current_cell(current);
+        draw_cell(current);
     }
 
 }
