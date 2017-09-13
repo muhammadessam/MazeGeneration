@@ -7,7 +7,7 @@
 
 #define WIDTH 400
 #define HEIGHT 400
-#define CELLWIDTH 20
+#define CELLWIDTH 50
 #define ROWS (HEIGHT/CELLWIDTH)
 #define COLS (WIDTH/CELLWIDTH)
 
@@ -153,6 +153,7 @@ void remove_walls(cell* current, cell* next){
 }
 int main() {
     srand(23);
+    Stack local = newStack();
     panel = newGWindow(WIDTH, HEIGHT);
     init_grid(grid);
     for (int i = 0; i < COLS * ROWS; ++i) {
@@ -168,11 +169,17 @@ int main() {
             // STEP 1 mark as viited
             grid[c].visited = true;
 
+            push(local, current);
             //STEP 3 remove walls
             remove_walls(current, &grid[c]);
             // sTEP 4
             current = &grid[c];
         }
+        else if(!isEmpty(local)){
+            current = pop(local);
+        }
+        if(isEmpty(local))
+            break;
         draw_cell(current);
     }
 
