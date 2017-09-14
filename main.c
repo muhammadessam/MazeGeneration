@@ -10,14 +10,13 @@
 #define ROWS 10//(HEIGHT/CELLWIDTH)
 #define COLS 10//(WIDTH/CELLWIDTH)
 
-
 //struct for holding info about each cell
 struct cell {
     int i;
     int j;
     bool walls[4];
     bool visited;
-    bool deadend;
+    bool start;
 };
 // new type
 typedef struct cell cell;
@@ -234,7 +233,7 @@ bool is_full_closed(cell *cell1) {
         left = true;
     }
 
-    if(top && left && right && down)
+    if (top && left && right && down)
         return true;
     else
         return false;
@@ -271,19 +270,18 @@ int is_half_closed(cell *cell1) {
     } else {
         left = true;
     }
-    if(!top){
+    if (!top) {
         return 0;
-    } else if(!right){
+    } else if (!right) {
         return 1;
-    } else if(!down){
+    } else if (!down) {
         return 2;
-    } else if(!left){
+    } else if (!left) {
         return 3;
-    } else{
+    } else {
         return -1;
     }
 }
-
 
 cell *move_agent(cell *cell1) {
     if (get_index(cell1->i, cell1->j) == ((COLS * ROWS) - 1)) {
@@ -354,14 +352,21 @@ cell *move_agent(cell *cell1) {
         while (cell1->walls[picked])
             picked = rand() % 4;
         cell1->walls[picked] = true;
-        current = cell1;
-    } else {
+        return cell1;
+    } else if(number_of_opened_walls==3){
+        push(movedCells, cell1);
+        int picked = rand() % 4;
+        while (cell1->walls[picked])
+            picked = rand() % 4;
+        cell1->walls[picked] = true;
+        return cell1;
+    }
+    else {
         int halfClosedindex = is_half_closed(cell1);
         if (halfClosedindex != -1) {
             cell1->walls[halfClosedindex] = false;
         }
         if (is_full_closed(cell1)) {
-            cell1->deadend = true;
             string temp = pop(moves);
             if (temp == "top") {
                 printf("moving down\n");
@@ -373,48 +378,49 @@ cell *move_agent(cell *cell1) {
                 printf("moving right\n");
             }
         }
-        int x = cell1->j*CELLWIDTH;
-        int y = cell1->i*CELLWIDTH;
-        GOval tempRect = newGOval(x+10, y+10,CELLWIDTH-20, CELLWIDTH-20 );
+        int x = cell1->j * CELLWIDTH;
+        int y = cell1->i * CELLWIDTH;
+        GOval tempRect = newGOval(x + 10, y + 10, CELLWIDTH - 20, CELLWIDTH - 20);
         setFillColor(tempRect, "RED");
         setFilled(tempRect, true);
         add(panel, tempRect);
-        current = pop(movedCells);
+        return pop(movedCells);
     }
 
 }
 
-void draw_for_solution(cell* temp){
-    int x = temp->j*CELLWIDTH;
-    int y = temp->i*CELLWIDTH;
-    if(!temp->visited){
-        GOval tempRect = newGOval(x+10, y+10,CELLWIDTH-20, CELLWIDTH-20 );
+void draw_for_solution(cell *temp) {
+    int x = temp->j * CELLWIDTH;
+    int y = temp->i * CELLWIDTH;
+    if (!temp->visited) {
+        GOval tempRect = newGOval(x + 10, y + 10, CELLWIDTH - 20, CELLWIDTH - 20);
         setFillColor(tempRect, "GREEN");
         setFilled(tempRect, true);
         add(panel, tempRect);
-    } else{
-        GOval tempRect = newGOval(x+10, y+10,CELLWIDTH-20, CELLWIDTH-20 );
-        setFillColor(tempRect, "WHITE");
+    } else {
+        GOval tempRect = newGOval(x + 10, y + 10, CELLWIDTH - 20, CELLWIDTH - 20);
+        setFillColor(tempRect, "BLUE");
         setFilled(tempRect, true);
         add(panel, tempRect);
     }
-    if(get_index(temp->i, temp->j)==(COLS*ROWS-1)){
-        GOval tempRect = newGOval(x+10, y+10,CELLWIDTH-20, CELLWIDTH-20 );
+    if (get_index(temp->i, temp->j) == (COLS * ROWS - 1)) {
+        GOval tempRect = newGOval(x + 10, y + 10, CELLWIDTH - 20, CELLWIDTH - 20);
         setFillColor(tempRect, "BLACK");
         setFilled(tempRect, true);
         add(panel, tempRect);
     }
-    if(get_index(temp->i, temp->j)==(0)){
-        GOval tempRect = newGOval(x+10, y+10,CELLWIDTH-20, CELLWIDTH-20 );
+    if (temp->start) {
+        GOval tempRect = newGOval(x + 10, y + 10, CELLWIDTH - 20, CELLWIDTH - 20);
         setFillColor(tempRect, "WHITE");
         setFilled(tempRect, true);
         add(panel, tempRect);
     }
 
+
 }
 
 int main() {
-    srand(8);
+    srand(9);
     current = NULL;
     Stack local = newStack();
     movedCells = newStack();
@@ -448,11 +454,6 @@ int main() {
         draw_cell(current);
 
     }
-    // pause(1000);
-    //closeGWindow(panel);
-
-
-
     //////////////////* remarking alt the cells as topunvisited again *////////////////
 
     for (int j = 0; j < ROWS * COLS; ++j) {
@@ -461,192 +462,18 @@ int main() {
 
 
     srand(2);
-    current = &grid[0];
+    current = &grid[15];
+    current->start = true;
     while (1) {
         draw_for_solution(current);
-        cell* temp = move_agent(current);
-        if(temp==NULL)
+        cell *temp = move_agent(current);
+        if (temp == NULL)
             break;
         else
             current = temp;
-        pause(12);
+        //pause(2);
 
 
     }
-
-
     return 0;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/*  thinking not working good*/////
-/*
-int move_from_1_walls(cell cell1){
-    int i = 0;
-    for (i = 0; i < 4; i++) {
-        if (!cell1.walls[i]) {
-            break;
-        }
-    }
-    if (i == 0) {
-        {
-            return move_up(cell1.i, cell1.j);
-        }
-    } else if (i == 1) {
-        return move_right(cell1.i, cell1.j);
-    } else if (i == 2) {
-        return move_down(cell1.i, cell1.j);
-    } else if (i == 3) {
-        return move_left(cell1.i, cell1.j);
-    }
-
-}
-
-int move_from_2_walls(cell cell1){
-    int firstWall = 0;
-    int secondWall = 0;
-    for (int i = 0; i < 4; i++) {
-        if (!cell1.walls[i]) {
-            firstWall = i;
-            break;
-        }
-    }
-    for (int i = 0; i < 4; ++i) {
-        if ((!(cell1.walls[i])) && (firstWall < i)) {
-            secondWall = i;
-            break;
-        }
-    }
-    if (firstWall == 0) {
-        if (!grid[get_up_index(cell1.i, cell1.j)].visited) {
-            return move_up(cell1.i, cell1.j);
-        } else {
-            if (secondWall == 1) {
-                return move_right(cell1.i, cell1.j);
-            } else if (secondWall == 2) {
-                return move_down(cell1.i, cell1.j);
-            } else if (secondWall == 3) {
-                return move_left(cell1.i, cell1.j);
-            }
-        }
-    } else if (firstWall == 1) {
-        if (!grid[get_right_index(cell1.i, cell1.j)].visited) {
-            return move_right(cell1.i, cell1.j);
-        } else {
-            if (secondWall == 0) {
-                return move_up(cell1.i, cell1.j);
-            } else if (secondWall == 2) {
-                return move_down(cell1.i, cell1.j);
-            } else if (secondWall == 3) {
-                return move_left(cell1.i, cell1.j);
-            }
-        }
-    } else if (firstWall == 2) {
-        if (!grid[get_down_index(cell1.i, cell1.j)].visited) {
-            return move_down(cell1.i, cell1.j);
-        } else {
-            if (secondWall == 0) {
-                return move_up(cell1.i, cell1.j);
-            } else if (secondWall == 1) {
-                return move_right(cell1.i, cell1.j);
-            } else if (secondWall == 3) {
-                return move_left(cell1.i, cell1.j);
-            }
-        }} else if (firstWall == 3) {
-        if (!grid[get_left_index(cell1.i, cell1.j)].visited) {
-            return move_left(cell1.i, cell1.j);
-        } else {
-            if (secondWall == 0) {
-                return move_up(cell1.i, cell1.j);
-            } else if (secondWall == 1) {
-                return move_right(cell1.i, cell1.j);
-            } else if (secondWall == 2) {
-                return move_right(cell1.i, cell1.j);
-            }
-        }
-    }
-}
-
-int move_from_3_walls(cell cell1){
-    int first_wall = 0;
-    int secod_wall = 0;
-    int third_wall = 0;
-    for (int i = 0; i <4 ; i++) {
-        if(!cell1.walls[i]){
-            first_wall=i;
-            break;
-        }
-    }
-    for (int i = 0; i <4; i++) {
-        if ((!(cell1.walls[i])) && (first_wall < i)) {
-            secod_wall = i;
-            break;
-        }
-    }
-    for (int i = 0; i < 4; ++i) {
-        if ((!(cell1.walls[i])) && (secod_wall < i)) {
-            third_wall = i;
-            break;
-        }
-    }
-
-
-
-
-}
-
-int move_agent(cell *cell1) {
-    int counter = 0;
-    if(get_index(cell1->i, cell1->j)==(COLS*ROWS-1))
-    {
-        printf("Your reached your dis");
-        return -1;
-    }
-    for (int i = 0; i < 4; i++) {
-        if (!cell1->walls[i])
-            counter++;
-    }
-    if (counter == 1) {
-        move_from_1_walls(*cell1);
-    } else if (counter == 2) {
-        move_from_2_walls(*cell1);
-
-    }
-
-}
-
-*/
