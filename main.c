@@ -27,7 +27,8 @@ cell grid[ROWS * COLS];
 GWindow panel;
 // creating current
 cell *current;
-Stack mystack;
+Stack movedCells;
+Stack moves;
 
 int get_index(int i, int j) {
     if (i < 0 || j < 0 || i > ROWS - 1 || j > COLS - 1)
@@ -201,10 +202,13 @@ int get_left_index(int i, int j) {
     return get_index(i, j - 1);
 }
 
+bool is_full_closed(cell *cell1) {
 
+}
 
+bool is_half_closed(cell *cell1) {
 
-
+}
 
 
 cell *move_agent(cell *cell1) {
@@ -231,6 +235,8 @@ cell *move_agent(cell *cell1) {
         ////////////////////////////////* setting the move *////////////////////////
         if (move_from == 0) {
             if (!grid[get_up_index(cell1->i, cell1->j)].visited) {
+                push(movedCells, cell1);
+                push(moves, "top");
                 cell1->walls[move_from] = true;
                 grid[get_up_index(cell1->i, cell1->j)].walls[2] = true;
                 return (&grid[move_up(cell1->i, cell1->j)]);
@@ -239,6 +245,8 @@ cell *move_agent(cell *cell1) {
             }
         } else if (move_from == 1) {
             if (!grid[get_right_index(cell1->i, cell1->j)].visited) {
+                push(movedCells, cell1);
+                push(moves, "right");
                 cell1->walls[move_from] = true;
                 grid[get_right_index(cell1->i, cell1->j)].walls[3] = true;
                 return (&grid[move_right(cell1->i, cell1->j)]);
@@ -247,6 +255,8 @@ cell *move_agent(cell *cell1) {
             }
         } else if (move_from == 2) {
             if (!grid[get_down_index(cell1->i, cell1->j)].visited) {
+                push(movedCells, cell1);
+                push(moves, "down");
                 cell1->walls[move_from] = true;
                 grid[get_down_index(cell1->i, cell1->j)].walls[0] = true;
                 return (&grid[move_down(cell1->i, cell1->j)]);
@@ -255,6 +265,8 @@ cell *move_agent(cell *cell1) {
             }
         } else if (move_from == 3) {
             if (!grid[get_left_index(cell1->i, cell1->j)].visited) {
+                push(movedCells, cell1);
+                push(moves, "left");
                 cell1->walls[move_from] = true;
                 grid[get_left_index(cell1->i, cell1->j)].walls[1] = true;
                 return (&grid[move_left(cell1->i, cell1->j)]);
@@ -262,17 +274,26 @@ cell *move_agent(cell *cell1) {
                 trap = true;
             }
         }
-    }
-    else if(number_of_opened_walls==2){
-        push(mystack, cell1);
-        int picked = rand()%4;
+    } else if (number_of_opened_walls == 2) {
+        push(movedCells, cell1);
+        int picked = rand() % 4;
         while (cell1->walls[picked])
-            picked = rand()%4;
-        cell1->walls[picked]=true;
+            picked = rand() % 4;
+        cell1->walls[picked] = true;
         move_agent(cell1);
-    } else{
-
-        current = (cell*)pop(mystack);
+    } else {
+        string temp = pop(moves);
+        if (temp == "top") {
+            printf("moving down\n");
+        } else if (temp == "right") {
+            printf("moving left\n");
+        } else if (temp == "down") {
+            printf("moving top\n");
+        }
+        else if (temp == "left") {
+            printf("moving right\n");
+        }
+        move_agent(pop(movedCells));
     }
 
 }
@@ -282,7 +303,8 @@ int main() {
     srand(2);
     current = NULL;
     Stack local = newStack();
-    mystack = newStack();
+    movedCells = newStack();
+    moves = newStack();
     panel = newGWindow(WIDTH, HEIGHT);
     init_grid(grid);
     for (int i = 0; i < COLS * ROWS; ++i) {
