@@ -1,15 +1,14 @@
 #include <stdio.h>
 #include <spl/cslib.h>
 #include <spl/gwindow.h>
-#include <spl/gevents.h>
 #include <spl/gobjects.h>
 #include <spl/stack.h>
 
 #define WIDTH 400
 #define HEIGHT 400
-#define CELLWIDTH 50
-#define ROWS 5//(HEIGHT/CELLWIDTH)
-#define COLS 5//(WIDTH/CELLWIDTH)
+#define CELLWIDTH 40
+#define ROWS 10//(HEIGHT/CELLWIDTH)
+#define COLS 10//(WIDTH/CELLWIDTH)
 
 
 //struct for holding info about each cell
@@ -187,6 +186,7 @@ int move_left(int i, int j) {
 }
 
 int get_up_index(int i, int j) {
+
     return get_index(i - 1, j);
 }
 
@@ -203,19 +203,92 @@ int get_left_index(int i, int j) {
 }
 
 bool is_full_closed(cell *cell1) {
+    bool top = false, right = false, down = false, left = false;
+    if (get_up_index(cell1->i, cell1->j) != -1) {
+        if ((cell1->walls[0]) && (grid[get_up_index(cell1->i, cell1->j)].walls[2])) {
+            top = true;
+        }
+    } else {
+        top = true;
+    }
+    if (get_right_index(cell1->i, cell1->j) != -1) {
+        if ((cell1->walls[1]) && (grid[get_right_index(cell1->i, cell1->j)].walls[3])) {
+            right = true;
+        }
+    } else {
+        right = true;
+    }
+    if (get_down_index(cell1->i, cell1->j) != -1) {
+        if ((cell1->walls[2]) && (grid[get_down_index(cell1->i, cell1->j)].walls[0])) {
+            down = true;
+        }
+    } else {
+        down = true;
+    }
+    if (get_left_index(cell1->i, cell1->j) != -1) {
+        if ((cell1->walls[3]) && (grid[get_left_index(cell1->i, cell1->j)].walls[1])) {
+            left = true;
+        }
+    } else {
+        left = true;
+    }
+
+    if(top && left && right && down)
+        return true;
+    else
+        return false;
 
 }
 
-bool is_half_closed(cell *cell1) {
-
+int is_half_closed(cell *cell1) {
+    bool top = false, right = false, down = false, left = false;
+    if (get_up_index(cell1->i, cell1->j) != -1) {
+        if ((cell1->walls[0]) && (grid[get_up_index(cell1->i, cell1->j)].walls[2])) {
+            top = true;
+        }
+    } else {
+        top = true;
+    }
+    if (get_right_index(cell1->i, cell1->j) != -1) {
+        if ((cell1->walls[1]) && (grid[get_right_index(cell1->i, cell1->j)].walls[3])) {
+            right = true;
+        }
+    } else {
+        right = true;
+    }
+    if (get_down_index(cell1->i, cell1->j) != -1) {
+        if ((cell1->walls[2]) && (grid[get_down_index(cell1->i, cell1->j)].walls[0])) {
+            down = true;
+        }
+    } else {
+        down = true;
+    }
+    if (get_left_index(cell1->i, cell1->j) != -1) {
+        if ((cell1->walls[3]) && (grid[get_left_index(cell1->i, cell1->j)].walls[1])) {
+            left = true;
+        }
+    } else {
+        left = true;
+    }
+    if(!top){
+        return 0;
+    } else if(!right){
+        return 1;
+    } else if(!down){
+        return 2;
+    } else if(!left){
+        return 3;
+    } else{
+        return -1;
+    }
 }
 
 
 cell *move_agent(cell *cell1) {
-    /*if(get_index(cell1->i, cell1->j)==((COLS*ROWS)-1)){
-        printf("you have reached");
+    if (get_index(cell1->i, cell1->j) == ((COLS * ROWS) - 1)) {
+        printf("you have reached\n");
         return NULL;
-    }*/
+    }
     cell1->visited = true;
     int number_of_opened_walls = 0;
     bool trap = false;
@@ -282,16 +355,21 @@ cell *move_agent(cell *cell1) {
         cell1->walls[picked] = true;
         move_agent(cell1);
     } else {
-        string temp = pop(moves);
-        if (temp == "top") {
-            printf("moving down\n");
-        } else if (temp == "right") {
-            printf("moving left\n");
-        } else if (temp == "down") {
-            printf("moving top\n");
+        int halfClosedindex = is_half_closed(cell1);
+        if (halfClosedindex != -1) {
+            cell1->walls[halfClosedindex] = false;
         }
-        else if (temp == "left") {
-            printf("moving right\n");
+        if (is_full_closed(cell1)) {
+            string temp = pop(moves);
+            if (temp == "top") {
+                printf("moving down\n");
+            } else if (temp == "right") {
+                printf("moving left\n");
+            } else if (temp == "down") {
+                printf("moving top\n");
+            } else if (temp == "left") {
+                printf("moving right\n");
+            }
         }
         move_agent(pop(movedCells));
     }
@@ -300,7 +378,7 @@ cell *move_agent(cell *cell1) {
 
 
 int main() {
-    srand(2);
+    srand(8);
     current = NULL;
     Stack local = newStack();
     movedCells = newStack();
@@ -346,7 +424,11 @@ int main() {
 
     current = &grid[0];
     while (1) {
-        current = move_agent(current);
+        cell* temp = move_agent(current);
+        if(temp==NULL)
+            break;
+        else
+            current = temp;
     }
 
 
