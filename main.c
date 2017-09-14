@@ -17,6 +17,7 @@ struct cell {
     int j;
     bool walls[4];
     bool visited;
+    bool deadend;
 };
 // new type
 typedef struct cell cell;
@@ -39,7 +40,7 @@ int get_index(int i, int j) {
 void init_grid(cell grid[ROWS * COLS]) {
     for (int i = 0; i < ROWS; i++) {
         for (int j = 0; j < COLS; j++) {
-            cell temp = {i, j, {true, true, true, true}, false};
+            cell temp = {i, j, {true, true, true, true}, false, false};
             grid[get_index(i, j)] = temp;
         }
     }
@@ -353,13 +354,14 @@ cell *move_agent(cell *cell1) {
         while (cell1->walls[picked])
             picked = rand() % 4;
         cell1->walls[picked] = true;
-        move_agent(cell1);
+        current = cell1;
     } else {
         int halfClosedindex = is_half_closed(cell1);
         if (halfClosedindex != -1) {
             cell1->walls[halfClosedindex] = false;
         }
         if (is_full_closed(cell1)) {
+            cell1->deadend = true;
             string temp = pop(moves);
             if (temp == "top") {
                 printf("moving down\n");
@@ -371,11 +373,45 @@ cell *move_agent(cell *cell1) {
                 printf("moving right\n");
             }
         }
-        move_agent(pop(movedCells));
+        int x = cell1->j*CELLWIDTH;
+        int y = cell1->i*CELLWIDTH;
+        GOval tempRect = newGOval(x+10, y+10,CELLWIDTH-20, CELLWIDTH-20 );
+        setFillColor(tempRect, "RED");
+        setFilled(tempRect, true);
+        add(panel, tempRect);
+        current = pop(movedCells);
     }
 
 }
 
+void draw_for_solution(cell* temp){
+    int x = temp->j*CELLWIDTH;
+    int y = temp->i*CELLWIDTH;
+    if(!temp->visited){
+        GOval tempRect = newGOval(x+10, y+10,CELLWIDTH-20, CELLWIDTH-20 );
+        setFillColor(tempRect, "GREEN");
+        setFilled(tempRect, true);
+        add(panel, tempRect);
+    } else{
+        GOval tempRect = newGOval(x+10, y+10,CELLWIDTH-20, CELLWIDTH-20 );
+        setFillColor(tempRect, "WHITE");
+        setFilled(tempRect, true);
+        add(panel, tempRect);
+    }
+    if(get_index(temp->i, temp->j)==(COLS*ROWS-1)){
+        GOval tempRect = newGOval(x+10, y+10,CELLWIDTH-20, CELLWIDTH-20 );
+        setFillColor(tempRect, "BLACK");
+        setFilled(tempRect, true);
+        add(panel, tempRect);
+    }
+    if(get_index(temp->i, temp->j)==(0)){
+        GOval tempRect = newGOval(x+10, y+10,CELLWIDTH-20, CELLWIDTH-20 );
+        setFillColor(tempRect, "WHITE");
+        setFilled(tempRect, true);
+        add(panel, tempRect);
+    }
+
+}
 
 int main() {
     srand(8);
@@ -408,7 +444,7 @@ int main() {
         }
 
         draw_current_cell(current);
-        pause(2);
+        //pause(2);
         draw_cell(current);
 
     }
@@ -418,17 +454,24 @@ int main() {
 
 
     //////////////////* remarking alt the cells as topunvisited again *////////////////
+
     for (int j = 0; j < ROWS * COLS; ++j) {
         grid[j].visited = false;
     }
 
+
+    srand(2);
     current = &grid[0];
     while (1) {
+        draw_for_solution(current);
         cell* temp = move_agent(current);
         if(temp==NULL)
             break;
         else
             current = temp;
+        pause(12);
+
+
     }
 
 
