@@ -6,10 +6,11 @@
 
 #define WIDTH 400
 #define HEIGHT 400
-#define CELLWIDTH 40
-#define ROWS 10//(HEIGHT/CELLWIDTH)
-#define COLS 10//(WIDTH/CELLWIDTH)
-
+#define CELLWIDTH 20
+#define ROWS 20//(HEIGHT/CELLWIDTH)
+#define COLS 20//(WIDTH/CELLWIDTH)
+#define START 0
+#define END   399
 //struct for holding info about each cell
 struct cell {
     int i;
@@ -284,7 +285,7 @@ int is_half_closed(cell *cell1) {
 }
 
 cell *move_agent(cell *cell1) {
-    if (get_index(cell1->i, cell1->j) == ((COLS * ROWS) - 1)) {
+    if (get_index(cell1->i, cell1->j) == (END)) {
         printf("you have reached\n");
         return NULL;
     }
@@ -380,7 +381,7 @@ cell *move_agent(cell *cell1) {
         }
         int x = cell1->j * CELLWIDTH;
         int y = cell1->i * CELLWIDTH;
-        GOval tempRect = newGOval(x + 10, y + 10, CELLWIDTH - 20, CELLWIDTH - 20);
+        GOval tempRect = newGOval(x + (CELLWIDTH/4.0), y + (CELLWIDTH/4.0), CELLWIDTH - (CELLWIDTH/2), CELLWIDTH - (CELLWIDTH/2));
         setFillColor(tempRect, "RED");
         setFilled(tempRect, true);
         add(panel, tempRect);
@@ -393,24 +394,24 @@ void draw_for_solution(cell *temp) {
     int x = temp->j * CELLWIDTH;
     int y = temp->i * CELLWIDTH;
     if (!temp->visited) {
-        GOval tempRect = newGOval(x + 10, y + 10, CELLWIDTH - 20, CELLWIDTH - 20);
+        GOval tempRect = newGOval(x + (CELLWIDTH/4.0), y + (CELLWIDTH/4.0), CELLWIDTH - (CELLWIDTH/2), CELLWIDTH - (CELLWIDTH/2));
         setFillColor(tempRect, "GREEN");
         setFilled(tempRect, true);
         add(panel, tempRect);
     } else {
-        GOval tempRect = newGOval(x + 10, y + 10, CELLWIDTH - 20, CELLWIDTH - 20);
+        GOval tempRect = newGOval(x + (CELLWIDTH/4.0), y + (CELLWIDTH/4.0), CELLWIDTH - (CELLWIDTH/2), CELLWIDTH - (CELLWIDTH/2));
         setFillColor(tempRect, "BLUE");
         setFilled(tempRect, true);
         add(panel, tempRect);
     }
-    if (get_index(temp->i, temp->j) == (COLS * ROWS - 1)) {
-        GOval tempRect = newGOval(x + 10, y + 10, CELLWIDTH - 20, CELLWIDTH - 20);
+    if (get_index(temp->i, temp->j) == (END)) {
+        GOval tempRect = newGOval(x + (CELLWIDTH/4.0), y + (CELLWIDTH/4.0), CELLWIDTH - (CELLWIDTH/2), CELLWIDTH - (CELLWIDTH/2));
         setFillColor(tempRect, "BLACK");
         setFilled(tempRect, true);
         add(panel, tempRect);
     }
     if (temp->start) {
-        GOval tempRect = newGOval(x + 10, y + 10, CELLWIDTH - 20, CELLWIDTH - 20);
+        GOval tempRect = newGOval(x + (CELLWIDTH/4.0), y + (CELLWIDTH/4.0), CELLWIDTH - (CELLWIDTH/2), CELLWIDTH - (CELLWIDTH/2));
         setFillColor(tempRect, "WHITE");
         setFilled(tempRect, true);
         add(panel, tempRect);
@@ -431,8 +432,8 @@ int main() {
         draw_cell(&grid[i]);
         //pause(1);
     }
-    grid[0].visited = true;
-    current = &grid[0];
+    grid[START].visited = true;
+    current = &grid[START];
     push(local, current);
     while (!isEmpty(local)) {
         int c;
@@ -471,7 +472,7 @@ int main() {
             break;
         else
             current = temp;
-        //pause(2);
+        pause(2);
 
 
     }
